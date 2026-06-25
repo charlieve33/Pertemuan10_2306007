@@ -131,7 +131,6 @@ class ProductModel {
   final String description;
   final double price;
   final String image;
-  final String category;
 
   ProductModel({
     required this.id,
@@ -139,7 +138,6 @@ class ProductModel {
     required this.description,
     required this.price,
     required this.image,
-    required this.category,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -149,7 +147,6 @@ class ProductModel {
       description: json['description'],
       price: (json['price'] as num).toDouble(),
       image: json['image'],
-      category: json['category'],
     );
   }
 }
@@ -408,5 +405,3 @@ Pastikan perangkat/emulator terhubung ke internet karena gambar diambil dari URL
 Proyek ini dibuat untuk keperluan akademik. © 2024 **Eva Carlia** — Teknik Informatika
 
 ---
-
-<p align="center">Dibuat dengan ❤️ menggunakan Flutter & Dart</p>
