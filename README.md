@@ -17,7 +17,7 @@
 | **NIM** | 2306007 |
 | **Mata Kuliah** | Pemrograman Mobile |
 | **Program Studi** | Teknik Informatika |
-| **Pertemuan** | 10 |
+| **Pertemuan** | 10-13 |
 | **Topik** | Image dengan StateSetter, Local Storage & Refactoring |
 
 ---
