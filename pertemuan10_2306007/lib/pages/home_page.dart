@@ -12,9 +12,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String username = "";
+  String username = '';
+
+  //variabel utama dari daftar product
   List<ProductModel> products = [];
-  int totalProducts = 4;
+  int totalProduct = 0;
 
   @override
   void initState() {
@@ -23,119 +25,152 @@ class _HomePageState extends State<HomePage> {
     loadProducts();
   }
 
-  Future<void> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      username = prefs.getString('username') ?? '';
-    });
-  }
-
+  //method untuk menampilkan data product
   Future<void> loadProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    List<String> productList = prefs.getStringList('products') ?? [];
-    totalProducts = productList.length;
+    final res = await SharedPreferences.getInstance();
+    List<String> productsList = res.getStringList('products') ?? [];
+    totalProduct = productsList.length;
     setState(() {
-      products = productList.reversed
+      products = productsList.reversed
           .take(3)
           .map((item) => ProductModel.fromJson(item))
           .toList();
     });
   }
 
+  Future<void> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username') ?? '';
+    });
+  }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setBool('isLogin', false);
-    await prefs.remove('username');
-
+    await prefs.clear();
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+      MaterialPageRoute(builder: (_) => const LoginPage()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home Page"),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.grey,
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                height: 100,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage(
+                        "https://picsum.photos/id/64/4326/2884",
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Hai, Selamat Datang!",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Text(
+                                username,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.verified,
+                                color: Colors.green,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: logout,
+                      child: Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.logout,
+                              size: 28,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+
+              Row(
+                mainAxisAlignment: .spaceBetween,
                 children: [
-                  const Icon(Icons.home, size: 80, color: Colors.blue),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "Selamat Datang, $username",
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  const Text(
-                    "Anda berhasil login ke aplikasi Flutter",
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: logout,
-                      icon: const Icon(Icons.logout),
-                      label: const Text("Logout"),
-                    ),
+                  Text("Total Produk: ${totalProduct.toString()}"),
+                  //tombol ke halaman daftar produk
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: ((context) => const ProductPage()),
+                        ),
+                      );
+                    },
+                    child: Text("Lihat Selengkapnya"),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [ Text("Total Produk: $totalProducts.toString()",),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProductPage()),
-                  );
-                },
-                child: const Text("Lihat Semua"),
-              ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
