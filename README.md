@@ -17,41 +17,53 @@
 | **NIM** | 2306007 |
 | **Mata Kuliah** | Pemrograman Mobile |
 | **Program Studi** | Teknik Informatika |
-| **Pertemuan** | 10-13 |
-| **Topik** | Image Picker dengan StateSetter, Local Storage & Refactoring |
+| **Pertemuan** | 10 |
+| **Topik** | Image dengan StateSetter, Local Storage & Refactoring |
 
 ---
 
 ## 📋 Deskripsi Proyek
 
-Proyek ini merupakan implementasi praktikum **Pertemuan 10** mata kuliah Pemrograman Mobile menggunakan framework **Flutter** dengan bahasa pemrograman **Dart**. Aplikasi ini membahas tiga konsep utama:
+Proyek ini merupakan implementasi praktikum **Pertemuan 10** mata kuliah Pemrograman Mobile menggunakan framework **Flutter** dan bahasa **Dart**. Aplikasi ini adalah aplikasi **katalog produk** yang dilengkapi halaman login, daftar produk, dan detail produk, serta mengimplementasikan tiga konsep utama:
 
 | Konsep | Implementasi |
 |---|---|
-| 🖼️ **Image + StateSetter** | Memilih & menampilkan gambar secara dinamis menggunakan `image_picker` dan `StateSetter` |
-| 💾 **Local Storage** | Menyimpan & membaca data secara persisten menggunakan `shared_preferences` |
-| 🔧 **Refactoring** | Pemisahan kode menjadi komponen modular, reusable widget, dan struktur folder yang bersih |
+| 🖼️ **Image + StateSetter** | Menampilkan gambar produk dari URL API secara dinamis dengan pembaruan state menggunakan `StateSetter` |
+| 💾 **Local Storage** | Menyimpan sesi login dan data pengguna secara persisten menggunakan `shared_preferences` |
+| 🔧 **Refactoring** | Kode dipisah ke dalam folder `models/`, `pages/`, dan `widgets/` agar modular dan bersih |
 
 ---
 
 ## 🗂️ Struktur Folder
 
-lib/
-├── models/        → product_model.dart
-├── pages/         → home_page, login_page, product_detail, product_page
-├── widgets/       → product_card.dart
-└── main.dart
+```
+Pertemuan10_2306007/
+├── lib/
+│   ├── main.dart                    # Entry point aplikasi
+│   ├── models/
+│   │   └── product_model.dart       # Model data produk
+│   ├── pages/
+│   │   ├── home_page.dart           # Halaman utama setelah login
+│   │   ├── login_page.dart          # Halaman login dengan local storage
+│   │   ├── product_detail_page.dart # Halaman detail produk
+│   │   └── product_page.dart        # Halaman daftar produk
+│   └── widgets/
+│       └── product_card.dart        # Widget kartu produk (reusable)
+├── pubspec.yaml
+└── README.md
+```
+
+---
 
 ## 🚀 Cara Menjalankan Proyek
 
 ### Prasyarat
 
 Pastikan sudah menginstal:
-
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) versi **3.x ke atas**
-- [Dart SDK](https://dart.dev/get-dart) (sudah termasuk dalam Flutter)
-- Android Studio / VS Code dengan ekstensi Flutter
-- Emulator Android / perangkat fisik (untuk uji kamera & galeri)
+- Dart SDK (sudah termasuk dalam Flutter)
+- Android Studio / VS Code + ekstensi Flutter & Dart
+- Emulator Android atau perangkat fisik
 
 ### Langkah Instalasi
 
@@ -75,197 +87,69 @@ flutter pub get
 flutter run
 ```
 
-> ⚠️ **Catatan:** Fitur kamera dan galeri membutuhkan perangkat fisik atau emulator dengan API level 21+ dan izin yang sudah dikonfigurasi di `AndroidManifest.xml` / `Info.plist`.
-
 ---
 
 ## 📦 Dependensi yang Digunakan
 
-| Package | Versi | Fungsi |
-|---|---|---|
-| `flutter` | SDK | Framework utama |
-| `image_picker` | ^1.x.x | Mengambil gambar dari kamera / galeri |
-| `shared_preferences` | ^2.x.x | Penyimpanan data lokal (key-value) |
-| `path_provider` | ^2.x.x | Akses path direktori perangkat |
-| `google_fonts` | ^6.x.x | Kustomisasi tipografi |
-
-> Lihat `pubspec.yaml` untuk versi lengkap dan terbaru.
-
----
-
-## ✨ Fitur & Konsep yang Diimplementasikan
-
----
-
-### 🖼️ 1. Image Picker dengan StateSetter
-
-Pengguna dapat memilih gambar dari **kamera** atau **galeri** perangkat. Gambar yang dipilih ditampilkan secara langsung (*real-time*) menggunakan `StateSetter` yang memungkinkan pembaruan UI di dalam fungsi callback tanpa perlu merebuild seluruh widget tree.
-
-**Cara kerja:**
-```dart
-File? _selectedImage;
-
-void _pickImage(StateSetter setState) async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-  if (pickedFile != null) {
-    setState(() {
-      _selectedImage = File(pickedFile.path);
-    });
-  }
-}
-```
-
-**Menampilkan gambar yang dipilih:**
-```dart
-_selectedImage != null
-    ? Image.file(_selectedImage!, fit: BoxFit.cover)
-    : Image.asset('assets/images/placeholder.png'),
-```
-
-**Konfigurasi izin Android (`AndroidManifest.xml`):**
-```xml
-<uses-permission android:name="android.permission.CAMERA"/>
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-```
-
-**Konfigurasi izin iOS (`Info.plist`):**
-```xml
-<key>NSCameraUsageDescription</key>
-<string>Aplikasi ini memerlukan akses kamera untuk mengambil foto.</string>
-<key>NSPhotoLibraryUsageDescription</key>
-<string>Aplikasi ini memerlukan akses galeri untuk memilih foto.</string>
-```
-
----
-
-### 💾 2. Local Storage dengan SharedPreferences
-
-Data pengguna (misalnya nama, preferensi, atau path gambar) disimpan secara **persisten** di perangkat menggunakan `shared_preferences`, sehingga data tetap ada meski aplikasi ditutup dan dibuka kembali.
-
-**Service layer (hasil refactoring):**
-```dart
-// lib/services/local_storage_service.dart
-
-class LocalStorageService {
-  static const String _keyNama    = 'user_nama';
-  static const String _keyImagePath = 'user_image_path';
-
-  // Menyimpan data
-  static Future<void> saveNama(String nama) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyNama, nama);
-  }
-
-  static Future<void> saveImagePath(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyImagePath, path);
-  }
-
-  // Membaca data
-  static Future<String?> getNama() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyNama);
-  }
-
-  static Future<String?> getImagePath() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyImagePath);
-  }
-
-  // Menghapus data
-  static Future<void> clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
-}
-```
-
-**Menggunakan service di dalam screen:**
-```dart
-// Simpan data saat user menekan tombol
-await LocalStorageService.saveNama(_namaController.text);
-await LocalStorageService.saveImagePath(_selectedImage!.path);
-
-// Muat data saat halaman pertama kali dibuka
-@override
-void initState() {
-  super.initState();
-  _loadData();
-}
-
-void _loadData() async {
-  final nama = await LocalStorageService.getNama();
-  final imagePath = await LocalStorageService.getImagePath();
-  setState(() {
-    _nama = nama ?? '';
-    if (imagePath != null) _selectedImage = File(imagePath);
-  });
-}
-```
-
----
-
-### 🔧 3. Refactoring
-
-Kode diorganisasi ulang mengikuti prinsip **Separation of Concerns** dan **DRY (Don't Repeat Yourself)** agar lebih mudah dibaca, dipelihara, dan dikembangkan.
-
-**Prinsip refactoring yang diterapkan:**
-
-| Sebelum Refactoring | Sesudah Refactoring |
+| Package | Fungsi |
 |---|---|
-| Semua logika di dalam satu file `main.dart` | Dipisah ke `screens/`, `widgets/`, `services/` |
-| Logika SharedPreferences tersebar di berbagai screen | Dipusatkan di `LocalStorageService` |
-| Widget image picker ditulis berulang | Dibuat menjadi `ImagePickerWidget` yang reusable |
-| Magic string untuk key storage | Konstanta di `constants.dart` |
+| `flutter` | Framework utama |
+| `shared_preferences` | Penyimpanan data lokal (key-value) |
+| `http` | Mengambil data produk dari API |
 
-**Contoh — widget yang di-refactor menjadi komponen terpisah:**
+> Lihat `pubspec.yaml` untuk versi lengkap.
+
+---
+
+## 📁 Penjelasan File
+
+### `lib/main.dart`
+Entry point aplikasi. Mengecek status login dari local storage untuk menentukan halaman awal — jika sudah login langsung ke `HomePage`, jika belum diarahkan ke `LoginPage`.
+
 ```dart
-// lib/widgets/image_picker_widget.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
-class ImagePickerWidget extends StatelessWidget {
-  final File? image;
-  final VoidCallback onPickFromGallery;
-  final VoidCallback onPickFromCamera;
+  runApp(MaterialApp(
+    title: 'Pertemuan 10',
+    home: isLoggedIn ? const HomePage() : const LoginPage(),
+  ));
+}
+```
 
-  const ImagePickerWidget({
-    super.key,
-    this.image,
-    required this.onPickFromGallery,
-    required this.onPickFromCamera,
+---
+
+### `lib/models/product_model.dart`
+Kelas model untuk merepresentasikan data produk dari API. Berisi constructor dan factory `fromJson` sebagai hasil **refactoring** agar data terstruktur dan terpisah dari logika UI.
+
+```dart
+class ProductModel {
+  final int id;
+  final String title;
+  final String description;
+  final double price;
+  final String image;
+  final String category;
+
+  ProductModel({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.price,
+    required this.image,
+    required this.category,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 60,
-          backgroundImage: image != null
-              ? FileImage(image!)
-              : const AssetImage('assets/images/placeholder.png')
-                  as ImageProvider,
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton.icon(
-              onPressed: onPickFromGallery,
-              icon: const Icon(Icons.photo_library),
-              label: const Text('Galeri'),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: onPickFromCamera,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Kamera'),
-            ),
-          ],
-        ),
-      ],
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    return ProductModel(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      price: (json['price'] as num).toDouble(),
+      image: json['image'],
+      category: json['category'],
     );
   }
 }
@@ -273,45 +157,249 @@ class ImagePickerWidget extends StatelessWidget {
 
 ---
 
+### `lib/pages/login_page.dart`
+Halaman login yang menyimpan status autentikasi ke **Local Storage** menggunakan `SharedPreferences`, sehingga sesi pengguna tetap tersimpan meski aplikasi ditutup dan dibuka kembali.
+
+```dart
+void _login() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  if (_usernameController.text == 'admin' &&
+      _passwordController.text == '1234') {
+    await prefs.setBool('is_logged_in', true);
+    await prefs.setString('username', _usernameController.text);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomePage()),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Username atau password salah!')),
+    );
+  }
+}
+```
+
+---
+
+### `lib/pages/home_page.dart`
+Halaman utama setelah login berhasil. Menampilkan nama pengguna yang dibaca dari local storage dan menyediakan tombol logout yang menghapus sesi.
+
+```dart
+void _logout() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const LoginPage()),
+  );
+}
+```
+
+---
+
+### `lib/pages/product_page.dart`
+Halaman daftar produk yang mengambil data dari API dan menampilkannya dalam bentuk grid/list menggunakan widget `ProductCard`. Menggunakan `StateSetter` melalui `StatefulBuilder` untuk memperbarui tampilan gambar produk secara dinamis di dalam dialog tanpa merebuild seluruh halaman.
+
+```dart
+void _showImagePreview(BuildContext context, ProductModel product) {
+  String currentImage = product.image;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.network(
+                  currentImage,
+                  height: 200,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const CircularProgressIndicator();
+                  },
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      // Perbarui gambar secara dinamis menggunakan StateSetter
+                      currentImage = 'https://via.placeholder.com/200';
+                    });
+                  },
+                  child: const Text('Ganti Gambar'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+```
+
+---
+
+### `lib/pages/product_detail_page.dart`
+Halaman detail produk yang menerima objek `ProductModel` dari halaman sebelumnya dan menampilkan informasi lengkap: gambar (dari URL), nama, kategori, harga, dan deskripsi produk.
+
+```dart
+class ProductDetailPage extends StatelessWidget {
+  final ProductModel product;
+  const ProductDetailPage({super.key, required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(product.title)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Image.network(
+                product.image,
+                height: 200,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(product.title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Kategori: ${product.category}'),
+            Text('Harga: \$${product.price}',
+                style: const TextStyle(color: Colors.green, fontSize: 16)),
+            const SizedBox(height: 8),
+            Text(product.description),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+---
+
+### `lib/widgets/product_card.dart`
+Widget kartu produk yang dapat digunakan ulang (*reusable*) — ini adalah hasil utama dari proses **refactoring**, memisahkan tampilan kartu dari logika halaman agar kode lebih bersih dan tidak berulang.
+
+```dart
+class ProductCard extends StatelessWidget {
+  final ProductModel product;
+  final VoidCallback onTap;
+
+  const ProductCard({
+    super.key,
+    required this.product,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                product.image,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(product.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('\$${product.price}',
+                      style: const TextStyle(color: Colors.green)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+---
+
+## ✨ Ringkasan Implementasi Konsep Utama
+
+### 🖼️ Image + StateSetter
+Gambar produk ditampilkan dari **URL API** menggunakan `Image.network()`. `StateSetter` dipakai melalui `StatefulBuilder` di dalam dialog agar gambar dapat diperbarui secara lokal tanpa merebuild seluruh widget tree halaman.
+
+### 💾 Local Storage (SharedPreferences)
+| Aksi | Kode |
+|---|---|
+| Simpan sesi login | `prefs.setBool('is_logged_in', true)` |
+| Baca status login | `prefs.getBool('is_logged_in') ?? false` |
+| Simpan username | `prefs.setString('username', value)` |
+| Logout / hapus sesi | `prefs.clear()` |
+
+### 🔧 Refactoring
+| Sebelum | Sesudah |
+|---|---|
+| Semua kode di `main.dart` | Dipisah ke `models/`, `pages/`, `widgets/` |
+| Data produk di-hardcode di UI | Dipindah ke `ProductModel` dengan `fromJson` |
+| Kartu produk ditulis berulang | Dijadikan `ProductCard` yang reusable |
+
+---
+
 ## 📸 Screenshot Aplikasi
 
 > *Tambahkan screenshot di sini setelah aplikasi dijalankan*
 
-| Tampilan Awal | Pilih Gambar | Data Tersimpan |
-|:---:|:---:|:---:|
-| *(Sebelum gambar dipilih)* | *(Dialog sumber gambar)* | *(Data berhasil disimpan)* |
+| Login Page | Home Page | Product Page | Product Detail |
+|:---:|:---:|:---:|:---:|
+| *(Halaman login)* | *(Beranda)* | *(Daftar produk)* | *(Detail produk)* |
 
 ---
 
 ## 🐛 Troubleshooting
 
-**Galeri / kamera tidak bisa dibuka?**
-Pastikan izin sudah ditambahkan di `AndroidManifest.xml` dan `Info.plist`. Pada Android 13+, gunakan izin `READ_MEDIA_IMAGES`.
+**Gagal login?**
+Periksa username dan password yang digunakan, pastikan sesuai yang didefinisikan di `login_page.dart`.
 
-**Data tidak tersimpan setelah aplikasi restart?**
-Periksa apakah `SharedPreferences.getInstance()` dipanggil dengan `await` dan pastikan `await prefs.setString(...)` tidak menghasilkan error.
+**Data login hilang setelah restart?**
+Pastikan `WidgetsFlutterBinding.ensureInitialized()` dipanggil sebelum `runApp()` di `main.dart`.
 
-**Gambar tidak tampil setelah restart?**
-Path gambar dari galeri bisa berubah antar sesi. Pertimbangkan untuk menyalin gambar ke direktori lokal aplikasi menggunakan `path_provider` terlebih dahulu, lalu simpan path barunya.
+**Gambar produk tidak tampil?**
+Pastikan perangkat/emulator terhubung ke internet karena gambar diambil dari URL API eksternal (`Image.network`).
 
 ---
 
 ## 📚 Referensi
 
 - [Dokumentasi Resmi Flutter](https://flutter.dev/docs)
-- [image_picker — pub.dev](https://pub.dev/packages/image_picker)
 - [shared_preferences — pub.dev](https://pub.dev/packages/shared_preferences)
-- [Flutter StateSetter](https://api.flutter.dev/flutter/widgets/StateSetter.html)
-- [Flutter Refactoring Best Practices](https://docs.flutter.dev/perf/best-practices)
+- [StatefulBuilder (StateSetter)](https://api.flutter.dev/flutter/widgets/StatefulBuilder-class.html)
+- [Image.network — Flutter API](https://api.flutter.dev/flutter/widgets/Image/Image.network.html)
 - Modul Pertemuan 10 — Pemrograman Mobile, Teknik Informatika
-
----
-
-## ⚠️ Catatan
-
-- Proyek ini dibuat untuk keperluan **tugas akademik**
-- Dilarang menyalin kode untuk keperluan tugas mahasiswa lain
-- Untuk pertanyaan, buka **Issues** pada halaman repositori ini
 
 ---
 
